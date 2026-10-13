@@ -5,11 +5,14 @@ $vite = Join-Path $ProjectRoot 'frontend\node_modules\vite\bin\vite.js'
 if (-not (Test-Path -LiteralPath $python)) { throw 'Python 가상환경을 먼저 준비하세요.' }
 if (-not (Test-Path -LiteralPath $vite)) { throw '프론트 의존성을 먼저 설치하세요.' }
 
+& "$PSScriptRoot\Start-Database.ps1"
+
 $existing = @(Get-ServerState)
 $live = @($existing | Where-Object { $null -ne (Get-OwnedProcess $_) })
 if ($live.Count -eq 2) {
     Wait-ForService "$BackendUrl/api/health" $true
     Wait-ForService "$FrontendUrl/api/health" $true
+    Wait-ForService "$FrontendUrl/api/ready" $true
     Write-Output "이미 실행 중입니다: $FrontendUrl"
     exit 0
 }
@@ -30,6 +33,7 @@ try {
     $started += [pscustomobject]@{ name = 'backend'; processId = $backend.Id; startTicks = $backend.StartTime.ToUniversalTime().Ticks.ToString(); executable = $python }
     Save-ServerState $started
     Wait-ForService "$BackendUrl/api/health" $true
+    Wait-ForService "$BackendUrl/api/ready" $true
 
     [Environment]::SetEnvironmentVariable('ONEUL_API_PORT', [string]$BackendPort, 'Process')
     [Environment]::SetEnvironmentVariable('ONEUL_FRONTEND_PORT', [string]$FrontendPort, 'Process')
@@ -38,6 +42,7 @@ try {
     Save-ServerState $started
     Wait-ForService $FrontendUrl
     Wait-ForService "$FrontendUrl/api/health" $true
+    Wait-ForService "$FrontendUrl/api/ready" $true
     Write-Output "프론트: $FrontendUrl"
     Write-Output "백엔드: $BackendUrl/api/health"
 } catch {

@@ -5,4 +5,6 @@ foreach ($entry in @(Get-ServerState)) {
 }
 Wait-ForService "$BackendUrl/api/health" $true
 Wait-ForService "$FrontendUrl/api/health" $true
-Write-Output '백엔드와 프론트의 API 연결이 정상입니다.'
+Wait-ForService "$FrontendUrl/api/ready" $true
+& "$PSScriptRoot\Status-Database.ps1"
+Write-Output '백엔드·프론트·DB 연결이 정상입니다.'

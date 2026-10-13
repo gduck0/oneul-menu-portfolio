@@ -1,0 +1,59 @@
+# 프로젝트 전용 PostgreSQL
+
+PostgreSQL 18.6 Windows 바이너리를 프로젝트 내부에서 실행한다. 시스템 서비스로 등록하지 않으며 다른 프로젝트의 DB를 사용하지 않는다.
+
+| 구분 | 설정 |
+| --- | --- |
+| 접속 | `127.0.0.1:15432` 기본값, `.runtime.local.json`의 `database_port`로 변경 |
+| 개발 | DB `oneul_menu_dev`, 계정 `oneul_dev` |
+| 테스트 | DB `oneul_menu_test`, 계정 `oneul_test` |
+| 서비스 스키마 | `app` |
+| 데이터 파일 | `.local/postgresql/data/` |
+| 관리용 비밀값 | `.local/postgresql/credentials.json` |
+| 개발 연결 설정 | `.env` |
+| 테스트 연결 설정 | `.env.test`의 `TEST_DATABASE_URL` |
+
+비밀값·DB 파일·로그·실행 파일은 Git에 포함하지 않는다. 관리 계정은 로컬 초기화·실행 관리에만 사용하고 서비스와 자동 테스트는 각자의 계정을 사용한다.
+
+## 새 컴퓨터에서 준비
+
+1. [PostgreSQL 공식 Windows 안내](https://www.postgresql.org/download/windows/)가 연결하는 [EDB 바이너리 배포](https://www.enterprisedb.com/download-postgresql-binaries)에서 Windows x86-64 ZIP을 내려받는다. 검증한 파일은 `postgresql-18.6-5-windows-x64-binaries.zip`이다.
+2. ZIP의 `pgsql/bin`, `pgsql/lib`, `pgsql/share`를 `.local/postgresql/runtime/pgsql/` 아래에 보관한다.
+3. 기존 로컬 바이너리가 있으면 읽기 전용으로 재사용할 수 있다. 데이터 디렉터리와 비밀값은 반드시 이 체크아웃에서 새로 생성한다.
+4. `.runtime.local.json`의 `postgresql_bin`에 해당 `pgsql/bin`의 절대 경로를 설정한다. 기존 `node`, `pnpm` 경로와 화면·API 포트는 유지한다. 다른 체크아웃과 동시 실행할 때는 `database_port`를 충돌하지 않는 포트로 지정한다. 실행 중인 DB의 포트 변경은 지원하지 않으며 기존 비밀 설정과 다른 포트는 거부한다.
+5. 가상환경에 `backend/requirements.lock`을 설치하고 다음 명령을 실행한다. 비밀번호·연결 파일은 로컬에서 생성된다. `.env.example`은 설정 형식의 참고용이다.
+
+```powershell
+.\scripts\Setup-Database.ps1
+.\scripts\Migrate-Database.ps1 -Target dev
+.\scripts\Migrate-Database.ps1 -Target test
+.\scripts\Start-Dev.ps1
+```
+
+초기화는 기존 DB를 삭제하거나 비밀번호·환경 파일을 덮어쓰지 않는다. 불완전한 데이터 디렉터리 또는 예상과 다른 DB 소유자가 발견되면 중단한다. 스키마 기준점은 `0001_app_schema`이며 음식·추천·계정 테이블은 아직 구현하지 않았다.
+
+Windows에서는 공식 PostgreSQL의 `libpq`를 사용하는 Psycopg Python 구현으로 검증했다. 라이브러리 경로는 프로젝트 프로세스 안에서만 설정하며 운영체제 보안 정책을 변경하지 않는다.
+
+## 실행·중지·검증
+
+`Start-Dev.ps1`, `Status-Dev.ps1`, `Stop-Dev.ps1`은 프론트·백엔드·프로젝트 DB를 함께 관리한다. DB만 관리할 때는 `Start-Database.ps1`, `Status-Database.ps1`, `Stop-Database.ps1`을 사용한다. 마이그레이션은 시작 명령이 자동 적용하지 않으므로 스키마 변경 후 대상 DB를 명시해서 실행한다.
+
+- `/api/health`: 백엔드 프로세스 응답 여부
+- `/api/ready`: 실제 DB 접속과 서비스 스키마 확인. DB 중단·스키마 미준비 시 503
+
+테스트는 `.env.test`를 명시적으로 읽고 개발 설정으로 대체하지 않는다. DB 이름·계정·호스트·포트를 검증하며 PostgreSQL 접속 규칙과 권한도 서로 다른 DB의 접속을 거부한다. 두 계정 모두 슈퍼유저·DB 생성·역할 생성·복제 권한이 없다.
+
+```powershell
+.\scripts\Test-Backend.ps1
+```
+
+이 코드의 실제 확인 범위:
+
+- 자동 검증 12개 통과: 잘못된 테스트 대상 차단, 실제 저장·롤백, 테스트 계정의 개발 DB 접속 거부, 권한 제한, 준비 상태 정상·실패 응답
+- 개발 계정의 테스트 DB 접속도 거부
+- 개발 확인 데이터를 포함한 테이블 내용의 지문이 테스트와 DB 재시작 전후 동일
+- 검증용 임시 테이블은 확인 후 정리
+- 실제 DB 중단 시 `/api/health` 200, 프론트 경유 `/api/ready` 503, 재시작 후 `/api/ready` 200
+- 초기화·마이그레이션 재실행 성공, `pip check` 통과
+
+Starlette의 `httpx` 사용 폐기 예고 경고 1건이 발생했다. 현재 검증은 통과하며 후속 테스트 환경 갱신 시 호환성을 확인한다.

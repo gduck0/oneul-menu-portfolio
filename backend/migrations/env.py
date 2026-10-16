@@ -2,6 +2,7 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 from app.database import Base
+from app import food_models
 from app.settings import get_settings
 
 database_url = get_settings().database_url.get_secret_value()

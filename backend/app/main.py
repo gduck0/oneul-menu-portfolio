@@ -4,6 +4,7 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.database import get_engine
+from app.food_api import router as food_router
 
 
 class HealthResponse(BaseModel):
@@ -12,6 +13,7 @@ class HealthResponse(BaseModel):
 
 
 app = FastAPI(title="오늘 뭐 먹지?", version="0.1.0")
+app.include_router(food_router)
 
 
 @app.get("/api/health", response_model=HealthResponse)

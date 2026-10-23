@@ -6,6 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 Unit = Literal['g', 'mL']
+Preference = Literal['balanced', 'energy', 'protein', 'similarity']
 
 
 class StrictModel(BaseModel):

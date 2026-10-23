@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=PROJECT_ROOT / '.env', extra='ignore', hide_input_in_errors=True)
     app_env: Literal['development', 'test'] = 'development'
     database_url: SecretStr
+    cookie_secure: bool = False
 
     @model_validator(mode='after')
     def validate_database_target(self):

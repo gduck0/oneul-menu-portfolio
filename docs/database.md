@@ -20,7 +20,7 @@ PostgreSQL 18.6 Windows 바이너리를 프로젝트 내부에서 실행한다. 
 1. [PostgreSQL 공식 Windows 안내](https://www.postgresql.org/download/windows/)가 연결하는 [EDB 바이너리 배포](https://www.enterprisedb.com/download-postgresql-binaries)에서 Windows x86-64 ZIP을 내려받는다. 검증한 파일은 `postgresql-18.6-5-windows-x64-binaries.zip`이다.
 2. ZIP의 `pgsql/bin`, `pgsql/lib`, `pgsql/share`를 `.local/postgresql/runtime/pgsql/` 아래에 보관한다.
 3. 기존 로컬 바이너리가 있으면 읽기 전용으로 재사용할 수 있다. 데이터 디렉터리와 비밀값은 반드시 이 체크아웃에서 새로 생성한다.
-4. `.runtime.local.json`의 `postgresql_bin`에 해당 `pgsql/bin`의 절대 경로를 설정한다. 기존 `node`, `pnpm` 경로와 화면·API 포트는 유지한다. 다른 체크아웃과 동시 실행할 때는 `database_port`를 충돌하지 않는 포트로 지정한다. 실행 중인 DB의 포트 변경은 지원하지 않으며 기존 비밀 설정과 다른 포트는 거부한다.
+4. 로컬 설정이 없으면 `.runtime.example.json`을 `.runtime.local.json`으로 복사하고 `postgresql_bin`을 실제 `pgsql/bin` 절대 경로로 바꾼다. 예시의 `C:/tools/...`는 설치 위치가 아니므로 그대로 사용하지 않는다. 기존 설정은 덮어쓰지 않는다. `node`, `pnpm`을 생략하거나 null·빈 문자열로 두면 각각 PATH에서 찾고, 명시한 잘못된 경로는 오류로 처리한다. 다른 체크아웃과 동시 실행할 때는 `database_port`를 충돌하지 않는 포트로 지정한다. 화면·API 포트와 기존 유효한 실행 경로는 유지한다. 실행 중인 DB의 포트 변경은 지원하지 않으며 기존 비밀 설정과 다른 포트는 거부한다.
 5. 가상환경에 `backend/requirements.lock`을 설치하고 다음 명령을 실행한다. 비밀번호·연결 파일은 로컬에서 생성된다. `.env.example`은 설정 형식의 참고용이다.
 
 ```powershell
@@ -47,7 +47,7 @@ Windows에서는 공식 PostgreSQL의 `libpq`를 사용하는 Psycopg Python 구
 .\scripts\Test-Backend.ps1
 ```
 
-이 코드의 실제 확인 범위:
+DB 격리 단계에서 확인한 범위(당시 결과):
 
 - 자동 검증 12개 통과: 잘못된 테스트 대상 차단, 실제 저장·롤백, 테스트 계정의 개발 DB 접속 거부, 권한 제한, 준비 상태 정상·실패 응답
 - 개발 계정의 테스트 DB 접속도 거부
@@ -57,3 +57,7 @@ Windows에서는 공식 PostgreSQL의 `libpq`를 사용하는 Psycopg Python 구
 - 초기화·마이그레이션 재실행 성공, `pip check` 통과
 
 Starlette의 `httpx` 사용 폐기 예고 경고 1건이 발생했다. 현재 검증은 통과하며 후속 테스트 환경 갱신 시 호환성을 확인한다.
+
+이후 음식 조회·계정·설정 기반까지 반영한 시점에는 백엔드 101개와 개발·테스트 업그레이드/재실행, 모델과 실제 스키마의 일치를 확인했다. 개발·테스트 각각 기존 음식 17,732행과 출처 1행을 보존한 업그레이드 검사다. 이 검사는 새 빈 DB에서 처음부터 설치한 검사와 구분한다.
+
+식단 추천·변경 API 연결 시에는 별도로 만든 클러스터에서 새 빈 개발 DB의 0001~0006 마이그레이션과 음식 백업을 복원한 테스트 DB의 0002~0006 업그레이드/재실행을 확인했다. 검사 후 기존 음식과 업무 테이블의 내용이 같았고 검사 계정·계획은 정리됐다. 실제 기록·평가·이관 API와 서비스 화면은 아직 연결하지 않았다.

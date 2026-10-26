@@ -1,0 +1,8 @@
+{
+  "node": null,
+  "pnpm": null,
+  "postgresql_bin": "C:/tools/postgresql/pgsql/bin",
+  "frontend_port": 15173,
+  "backend_port": 18080,
+  "database_port": 15432
+}

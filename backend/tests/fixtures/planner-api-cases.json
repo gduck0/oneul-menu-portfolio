@@ -1,0 +1,424 @@
+{
+  "cases": [
+    {
+      "id": "P01",
+      "title": "기본 3끼와 서버 영양 합계",
+      "settings": {},
+      "plan": {
+        "client_request_id": "9467dafa-f6ff-5d8f-aae2-fd02692273a9",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3,
+        "protein_target": "100"
+      },
+      "edits": [],
+      "expected": [
+        "아침/점심/저녁 3끼와 준비된 후보를 반환한다.",
+        "분량은 메뉴 범위 안이다.",
+        "Decimal로 재계산한 항목→끼니→하루 합계가 응답과 일치한다.",
+        "목표 차이는 실제 합계-1800으로 표시한다. 목표와 정확히 일치한다고 가정하지 않는다."
+      ]
+    },
+    {
+      "id": "P02",
+      "title": "4끼의 간식 적합성",
+      "settings": {},
+      "plan": {
+        "client_request_id": "9b622662-5e79-53ca-86ab-2636c7fe4255",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 4
+      },
+      "edits": [],
+      "expected": [
+        "간식 자동 후보는 간식 허용 슬롯을 가진 메뉴다.",
+        "생선구이를 자동 간식 후보로 끌어오지 않는다.",
+        "준비 시간·분량·제외 조건을 함께 지킨다."
+      ]
+    },
+    {
+      "id": "P03",
+      "title": "선호를 반영하며 비빔밥 계열 반복 억제",
+      "settings": {
+        "goal": "similarity",
+        "favorite_foods": [
+          "비빔밥"
+        ],
+        "avoided_foods": [
+          "생선"
+        ]
+      },
+      "plan": {
+        "client_request_id": "311168b3-2fb6-55b0-9a0d-37eee8613143",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [],
+      "expected": [
+        "고정되지 않은 하루 자동 결과에서 비빔밥/돌솥비빔밥 같은 계열이 반복되지 않는다(충분한 후보 전제).",
+        "선호가 후보 선택에 반영되지만 제외·슬롯 조건을 넘어서지 않는다.",
+        "설정을 바꿀 때 반드시 모든 메뉴가 바뀐다고 가정하지 않는다."
+      ]
+    },
+    {
+      "id": "P04",
+      "title": "끼니별 조리 조건과 전역 제외의 적용 범위",
+      "settings": {
+        "avoided_foods": [
+          "생선"
+        ]
+      },
+      "plan": {
+        "client_request_id": "7853c905-566a-5f9c-8969-0310023f14ab",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3,
+        "constraints": {
+          "breakfast": {
+            "no_cook": true
+          },
+          "lunch": {
+            "max_minutes": 15,
+            "avoided_foods": [
+              "버섯"
+            ]
+          },
+          "dinner": {
+            "tools": [
+              "pan"
+            ],
+            "max_minutes": 30
+          }
+        }
+      },
+      "edits": [],
+      "expected": [
+        "아침은 준비된 음식 조건, 저녁은 지정 도구·시간을 지킨다.",
+        "생선 제외는 자동 추천 전체에, 버섯 제외는 점심 요청에 적용된다.",
+        "저장 기본 조리 조건은 API 요청 constraints로 명시해 사용한다. 서버가 모든 기본값을 자동 합친다고 가정하지 않는다."
+      ]
+    },
+    {
+      "id": "P05",
+      "title": "고정된 끼니와 다른 끼니 보존",
+      "settings": {},
+      "plan": {
+        "client_request_id": "2cdb09c5-473d-52e9-92a0-94d1972388d9",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [
+        {
+          "client_request_id": "a752dc2a-7a65-59a0-a146-3c2a2b44bc1b",
+          "expected_version": "$plan.version",
+          "meal_key": "breakfast",
+          "action": "lock",
+          "locked": true
+        },
+        {
+          "client_request_id": "392d17d2-13ba-5123-8141-7c174525762f",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "replace"
+        },
+        {
+          "client_request_id": "40993bd3-5055-5398-bb37-8b4b68125616",
+          "expected_version": "$plan.version",
+          "meal_key": "breakfast",
+          "action": "replace"
+        }
+      ],
+      "expected": [
+        "아침 고정 후 점심을 교체해도 아침·저녁 항목/분량과 고정 상태가 동일하다.",
+        "고정한 아침의 자동 replace는 409이고 계획을 바꾸지 않는다."
+      ]
+    },
+    {
+      "id": "P06",
+      "title": "사용자가 고른 중복 고정 메뉴는 보존",
+      "settings": {},
+      "plan": {
+        "client_request_id": "5f5ddfcf-83b1-5cc9-a95e-f75ff69e92a4",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3,
+        "fixed_meals": {
+          "lunch": {
+            "menu_id": "menu-574c26d169130a08",
+            "amount_g": "300"
+          },
+          "dinner": {
+            "menu_id": "menu-d55769641999361c",
+            "amount_g": "300"
+          }
+        }
+      },
+      "edits": [],
+      "expected": [
+        "점심 비빔밥과 저녁 돌솥비빔밥 300g 선택을 그대로 유지한다.",
+        "자동 다양성보다 사용자의 고정 선택을 우선하고 중복 이유를 표시한다."
+      ]
+    },
+    {
+      "id": "P07",
+      "title": "직접 선택과 제외 충돌 확인",
+      "settings": {
+        "avoided_foods": [
+          "생선"
+        ]
+      },
+      "plan": {
+        "client_request_id": "6ab1934c-285b-58f8-8d16-ed2527d12467",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [
+        {
+          "client_request_id": "5aeb5eb5-473d-59a5-9296-3e065e8be3ca",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "set",
+          "menu_id": "menu-4339c45c8ba08631",
+          "amount_g": "200"
+        },
+        {
+          "client_request_id": "595d2f2b-62a3-57b7-b90f-79a4ac8be487",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "replace"
+        }
+      ],
+      "expected": [
+        "제외된 참치 후보는 숨기지 않고 생선 충돌을 반환한다.",
+        "조회/충돌 확인은 계획·설정을 바꾸지 않는다.",
+        "명시적 직접 set은 가능하며 제외 설정과 다른 끼니는 유지한다.",
+        "다시 자동 추천하면 제외 조건이 다시 적용된다. 경고는 차단 API나 완전한 알레르기 판정이 아니다."
+      ]
+    },
+    {
+      "id": "P08",
+      "title": "세트의 구성 음식 하나만 변경",
+      "settings": {},
+      "plan": {
+        "client_request_id": "6b4691f6-017c-5de8-bc03-648e60ddfeb9",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [
+        {
+          "client_request_id": "0f05dcd5-e1a0-5869-bd5f-3003b5b73dac",
+          "expected_version": "$plan.version",
+          "meal_key": "dinner",
+          "action": "update_item",
+          "item_id": "$side.item_id",
+          "custom_name": "집에서 준비한 반찬",
+          "amount_g": null
+        }
+      ],
+      "expected": [
+        "밥·반찬·국 구성으로 준비한 끼니에서 반찬 item_id 하나만 update_item한다.",
+        "다른 구성 음식과 다른 끼니는 유지하고 선택 항목의 교체·합계만 바뀐다.",
+        "중복 menu_id가 있어도 요청은 고유 item_id를 사용한다."
+      ]
+    },
+    {
+      "id": "P09",
+      "title": "등록 음식 분량 변경과 원래 영양 기준 보존",
+      "settings": {},
+      "plan": {
+        "client_request_id": "10379835-bdf4-563b-9223-8dc167acef67",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [
+        {
+          "client_request_id": "d114d41a-c6f7-5835-8c68-9692894fd31b",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "set",
+          "menu_id": "menu-574c26d169130a08",
+          "amount_g": "300"
+        },
+        {
+          "client_request_id": "e97d2fe5-afb9-54e3-8911-25806f756ebf",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "portion",
+          "item_id": "$meal.items[0].item_id",
+          "amount_g": "450"
+        },
+        {
+          "client_request_id": "caa0847f-7f7a-527a-8d88-cac4e4e7d43a",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "portion",
+          "item_id": "$meal.items[0].item_id",
+          "amount_g": null
+        }
+      ],
+      "expected": [
+        "비빔밥 300→450g이면 저장된 100g 기준 영양을 4.5배 하고 둘째 자리로 반올림한다.",
+        "원본 기준량/자료 출처와 다른 항목은 보존한다.",
+        "등록 메뉴의 amount_g=null은 422다."
+      ]
+    },
+    {
+      "id": "P10",
+      "title": "이름만 입력하고 분량 모름",
+      "settings": {},
+      "plan": {
+        "client_request_id": "579a8c4d-f8d8-592a-9f6f-8c0bf8ca159c",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [
+        {
+          "client_request_id": "a32f60ac-0eb4-51d6-aa80-c0124d0d0408",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "set",
+          "custom_name": "오늘 준비한 도시락",
+          "amount_g": null
+        }
+      ],
+      "expected": [
+        "직접 입력 이름을 보존하고 모르는 분량/영양은 null이다.",
+        "확인된 영양 합계와 결측 항목을 구분한다. 0g/0kcal로 채우거나 목표 달성을 주장하지 않는다.",
+        "직접 입력만으로 끼니 전체를 자동 고정하지 않는다."
+      ]
+    },
+    {
+      "id": "P11",
+      "title": "추천 변경 되돌리기",
+      "settings": {},
+      "plan": {
+        "client_request_id": "b7498ba4-44e9-59c9-b33b-0fedabb7bf5d",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [
+        {
+          "client_request_id": "276bc252-993f-51ff-ade3-50ffe42dcea5",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "replace"
+        },
+        {
+          "client_request_id": "10b5a74d-4b88-5798-b3dc-ce7ba32cff71",
+          "expected_version": "$plan.version",
+          "meal_key": "lunch",
+          "action": "undo_replace",
+          "replacement_request_id": "$replace.client_request_id"
+        }
+      ],
+      "expected": [
+        "점심 replace 직전 스냅샷을 저장하고 해당 요청 ID로 undo한다.",
+        "끼니 음식·분량·고정 상태가 이전과 같고 다른 끼니가 유지된다. 계획 버전은 진행한다.",
+        "중간 수동 변경 후 예전 undo 요청은 409이고 현재 계획을 덮어쓰지 않는다."
+      ]
+    },
+    {
+      "id": "P12",
+      "title": "동일 요청 재시도와 오래된 버전 거절",
+      "settings": {},
+      "plan": {
+        "client_request_id": "8990e723-ebf8-58f0-80ea-7764fd9ecd4e",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [],
+      "expected": [
+        "동일 생성 요청 ID/본문은 같은 계획, 같은 ID/다른 본문은 409다.",
+        "동일 변경 ID/본문은 동일 결과이며 중복 작업을 추가하지 않는다.",
+        "오래된 expected_version 변경은 409이고 최신 계획을 보존한다."
+      ]
+    },
+    {
+      "id": "P13",
+      "title": "계정·체험 소유권 분리",
+      "settings": {},
+      "plan": {
+        "client_request_id": "350b3c05-13b8-5445-b5a0-9b6a081e6582",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [],
+      "expected": [
+        "다른 계정/체험 브라우저는 목록에서 상대 계획을 보지 못하고 GET/PATCH는 404다.",
+        "다른 소유자의 최근 추천이 현재 순위/다양성 이력에 섞이지 않는다."
+      ]
+    },
+    {
+      "id": "P14",
+      "title": "후보 부족·불가능한 조건을 감추지 않기",
+      "settings": {},
+      "plan": {
+        "client_request_id": "c2c0301f-aee3-5513-94a4-b21ba0078b01",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3,
+        "constraints": {
+          "breakfast": {
+            "avoided_foods": [
+              "밥",
+              "죽",
+              "빵",
+              "달걀",
+              "두부",
+              "샌드위치",
+              "김밥"
+            ]
+          }
+        }
+      },
+      "edits": [],
+      "expected": [
+        "아침 조건에 맞는 후보가 없으면 비어 있음과 이유를 반환하고 조건을 임의로 완화하지 않는다.",
+        "유일하게 적합한 후보만 남으면 반복을 허용하고 설명한다.",
+        "모든 끼니 목표를 달성했다고 표시하지 않는다."
+      ]
+    },
+    {
+      "id": "P15",
+      "title": "음식 검색 묶음과 출처 구분",
+      "settings": {},
+      "plan": {
+        "client_request_id": "31b6cf6d-32f2-5097-a947-867226a8ee02",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [],
+      "expected": [
+        "비빔밥 검색의 표시 묶음과 원본 variant를 구분하고 이름만으로 업체/단위/출처를 합치지 않는다.",
+        "g/mL 단위를 보존한다. 서로 다른 단위 영양값을 평균내지 않는다."
+      ]
+    },
+    {
+      "id": "P16",
+      "title": "메뉴 자료가 준비되지 않았을 때",
+      "settings": {},
+      "plan": {
+        "client_request_id": "c08da167-b912-5a7c-b8ee-0fbd639cece9",
+        "plan_date": "2026-10-26",
+        "energy_target": "1800",
+        "meal_count": 3
+      },
+      "edits": [],
+      "expected": [
+        "활성 자료에 필요한 메뉴가 전혀 없으면 생성은 503이다.",
+        "빈/가짜 성공 계획을 만들거나 개발 자료를 새로 가져오지 않는다.",
+        "직전 계획과 설정은 보존한다."
+      ]
+    }
+  ]
+}

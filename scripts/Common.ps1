@@ -21,17 +21,40 @@ if ($BackendPort -eq $FrontendPort) { throw '화면과 API의 포트는 서로 �
 $BackendUrl = "http://127.0.0.1:$BackendPort"
 $FrontendUrl = "http://127.0.0.1:$FrontendPort"
 
+function Get-RuntimeExecutable($settings, [string]$name, [string]$command, [bool]$required = $true) {
+    $property = $settings.PSObject.Properties[$name]
+    $configured = if ($null -ne $property) { $property.Value } else { $null }
+    if ($null -ne $configured -and $configured -isnot [string]) {
+        throw "실행 파일 경로는 문자열이어야 합니다: $name"
+    }
+    if (-not [string]::IsNullOrWhiteSpace($configured)) {
+        if (-not (Test-Path -LiteralPath $configured -PathType Leaf)) {
+            throw "설정한 실행 파일을 찾을 수 없습니다: $name"
+        }
+        return (Resolve-Path -LiteralPath $configured).Path
+    }
+    $found = Get-Command $command -CommandType Application -ErrorAction SilentlyContinue | Select-Object -First 1
+    if ($null -eq $found) {
+        if (-not $required) { return $null }
+        throw "$command 명령을 찾을 수 없습니다. 설치 후 PATH를 확인하거나 .runtime.local.json의 $name 경로를 지정하세요."
+    }
+    return $found.Source
+}
+
 function Get-Runtime {
     $settingsPath = Join-Path $ProjectRoot '.runtime.local.json'
     if (Test-Path -LiteralPath $settingsPath) {
         $settings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
     } else {
-        $settings = [pscustomobject]@{
-            node = (Get-Command node -ErrorAction Stop).Source
-            pnpm = (Get-Command pnpm.cmd -ErrorAction Stop).Source
-        }
+        $settings = [pscustomobject]@{}
     }
-    if (-not (Test-Path -LiteralPath $settings.node)) { throw 'Node 실행 파일을 찾을 수 없습니다.' }
+    if ($null -eq $settings -or $settings -isnot [pscustomobject]) {
+        throw '.runtime.local.json은 설정 항목을 담은 JSON 객체여야 합니다.'
+    }
+    $node = Get-RuntimeExecutable $settings 'node' 'node'
+    $pnpm = Get-RuntimeExecutable $settings 'pnpm' 'pnpm.cmd' $false
+    $settings | Add-Member -MemberType NoteProperty -Name node -Value $node -Force
+    $settings | Add-Member -MemberType NoteProperty -Name pnpm -Value $pnpm -Force
     return $settings
 }
 

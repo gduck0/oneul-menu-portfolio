@@ -217,7 +217,8 @@ def test_database_failure_is_sanitized_for_account_and_settings():
 def test_only_current_stage_endpoints_are_exposed():
     paths = set(app.openapi()['paths'])
     assert {'/api/auth/register', '/api/auth/login', '/api/auth/logout', '/api/auth/me', '/api/preferences'} <= paths
-    assert not any(path.startswith(('/api/planner', '/api/meals', '/api/feedback', '/api/recommendations', '/api/history', '/api/guest')) for path in paths)
+    assert {'/api/planner/menus', '/api/plans', '/api/plans/{plan_id}'} <= paths
+    assert not any(path.startswith(('/api/meals', '/api/feedback', '/api/recommendations', '/api/history', '/api/guest')) or path.endswith(('/record', '/actual-meals')) for path in paths)
 
 
 def test_runtime_origins_follow_checkout_configuration(tmp_path):

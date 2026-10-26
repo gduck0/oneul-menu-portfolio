@@ -7,6 +7,7 @@ from app.database import get_engine
 from app.food_api import router as food_router
 from app.account_api import router as account_router
 from app.preference_api import router as preference_router
+from app.planner_api import router as planner_router
 from app.runtime import application_origins
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -21,6 +22,7 @@ app = FastAPI(title="오늘 뭐 먹지?", version="0.1.0")
 app.include_router(food_router)
 app.include_router(account_router)
 app.include_router(preference_router)
+app.include_router(planner_router)
 
 
 @app.middleware('http')

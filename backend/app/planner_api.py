@@ -1,8 +1,8 @@
 from copy import deepcopy
-from datetime import date
+from datetime import date, timedelta
 import hashlib
 import json
-from uuid import UUID, uuid4
+from uuid import UUID, uuid4, uuid5
 from typing import Annotated
 
 from pydantic import Field
@@ -14,9 +14,11 @@ from sqlalchemy.dialects.postgresql import insert
 from app.food_catalog import NUTRIENT_FIELDS, normalize_name
 from decimal import Decimal, ROUND_HALF_UP
 from app.preference_service import owner_identity, settings_for
+from app.personal_contracts import MealResponse
 from app.preference_contracts import SettingsRequest
+from app.personal_models import MealEntry
 from app.personal_ranking import rating_scores
-from app.planner_contracts import PlanEdit, PlanRequest, PlanResponse
+from app.planner_contracts import PlanEdit, PlanMealRecord, PlanRequest, PlanResponse
 from app.planner_models import MealPlan, PlanOperation
 from app.planner_service import build_meals, exclusion_conflicts, grouped_food_search, manual_item, menu_catalog, menu_definitions, replace_meal, sum_nutrition, update_summary
 from app.security import utcnow
@@ -170,6 +172,27 @@ def plan(plan_id: UUID,request: Request,response: Response,session=Depends(get_s
     return find_plan(session,plan_id,owner).payload
 
 
+@router.get('/plans/{plan_id}/actual-meals')
+def actual_plan_meals(plan_id: UUID,request: Request,response: Response,session=Depends(get_session)):
+    owner,_,_=owner_identity(session,request,response)
+    row=find_plan(session,plan_id,owner)
+    consumed=[meal for meal in row.payload['meals'] if meal.get('consumed')]
+    ids={record['id'] for meal in consumed for record in meal.get('records',[])}
+    entries={entry.id:entry for entry in session.scalars(select(MealEntry).where(MealEntry.owner_key==owner,MealEntry.id.in_(ids),MealEntry.cancelled_at.is_(None)))} if ids else {}
+    meals={}
+    for meal in consumed:
+        record_ids=[record['id'] for record in meal.get('records',[])]
+        available=bool(record_ids) and len(set(record_ids))==len(record_ids) and all(
+            record_id in entries and entries[record_id].payload.get('plan_id') in [None,row.id]
+            and entries[record_id].payload.get('meal_key') in [None,meal['key']] for record_id in record_ids)
+        if not available:
+            meals[meal['key']]={'state':'unavailable'}
+            continue
+        items=[MealResponse.model_validate({**{key:value for key,value in entries[record_id].payload.items() if key!='portion_reference'},'version':entries[record_id].version,'cancelled_at':None}).model_dump(mode='json') for record_id in record_ids]
+        nutrients,missing=sum_nutrition(items)
+        skipped=list(dict.fromkeys([item['name'] for item in meal.get('skipped_items',[])]+[name for item in items for name in item.get('skipped_foods',[])]))
+        meals[meal['key']]={'state':'ready','items':items,'nutrients':nutrients,'missing_nutrients':missing,'skipped_foods':skipped}
+    return {'plan_id':row.id,'plan_version':row.version,'meals':meals}
 
 
 @router.patch('/plans/{plan_id}',response_model=PlanResponse)
@@ -246,4 +269,46 @@ def edit_plan(plan_id: UUID,data: PlanEdit,request: Request,response: Response,s
         meal['reason']='입력한 분량으로 참고 영양을 다시 계산했어요.' if item['menu_id'] else '직접 입력 음식의 분량을 저장했어요. 모르는 분량과 영양은 추정하지 않아요.'
     result=update_plan(row,payload)
     save_operation(session,row,data.client_request_id,input_hash,result,replacement_before)
+    return result
+
+
+@router.post('/plans/{plan_id}/meals/{meal_key}/record')
+def record_plan_meal(plan_id: UUID,meal_key: str,data: PlanMealRecord,request: Request,response: Response,session=Depends(get_session)):
+    if data.eaten_at>utcnow()+timedelta(minutes=5):raise HTTPException(422,'미래의 식사 시각은 기록할 수 없어요.')
+    owner,_,_=owner_identity(session,request,response);row=find_plan(session,plan_id,owner,True)
+    inputs=data.model_dump(mode='json',exclude={'client_record_id'})
+    if not inputs.get('amounts'):inputs.pop('amounts',None)
+    if not inputs.get('skipped_item_ids'):inputs.pop('skipped_item_ids',None)
+    input_hash=digest({'kind':'record','meal_key':meal_key,**inputs})
+    previous=operation(session,row,data.client_record_id,input_hash)
+    if previous:return previous
+    if row.version!=data.expected_version:raise HTTPException(409,'계획이 변경됐어요. 최신 계획을 확인해 주세요.')
+    payload=deepcopy(row.payload);meal=next((meal for meal in payload['meals'] if meal['key']==meal_key),None)
+    if meal is None:raise HTTPException(404,'이 계획의 끼니를 찾지 못했어요.')
+    if meal.get('consumed'):raise HTTPException(409,'이미 먹은 것으로 기록한 끼니예요.')
+    if not meal['items']:raise HTTPException(422,'먹은 메뉴를 먼저 선택해 주세요.')
+    item_ids={item['item_id'] for item in meal['items']}
+    skipped=set(data.skipped_item_ids)
+    if (set(data.amounts) | skipped)-item_ids:raise HTTPException(422,'이 끼니의 음식만 기록할 수 있어요.')
+    if set(data.amounts) & skipped:raise HTTPException(422,'먹지 않은 음식에는 실제 먹은 양을 함께 입력할 수 없어요.')
+    if skipped == item_ids:raise HTTPException(422,'먹은 음식을 하나 이상 선택해 주세요. 아직 먹지 않았다면 기록 창을 닫아 주세요.')
+    skipped_foods=[item['name'] for item in meal['items'] if item['item_id'] in skipped]
+    records=[]
+    for item in meal['items']:
+        if item['item_id'] in skipped:continue
+        amount=data.amounts.get(item['item_id'],Decimal(item['amount_g']) if item['amount_g'] is not None else None)
+        if amount is None and item['food'] is not None:
+            raise HTTPException(422,'등록 메뉴는 기준 분량을 선택하거나 실제 먹은 양을 입력해 주세요.')
+        ratio=amount/Decimal(item['amount_g']) if amount is not None and item['amount_g'] is not None else None
+        nutrients={field:None if value is None or ratio is None else str((Decimal(value)*ratio).quantize(Decimal('.01'),rounding=ROUND_HALF_UP)) for field,value in item['nutrients'].items()}
+        portion={'amount':str(amount),'unit':'g'} if amount is not None else None
+        calculated={'food':item['food'],'portion':portion,'nutrients':nutrients,'missing_nutrients':[]} if item['food'] else None
+        result=MealResponse(id=str(uuid4()),name=item['name'],food_id=item['food']['id'] if item['food'] else None,portion=portion,eaten_at=data.eaten_at,notes='식단 계획에서 먹은 식사로 기록',nutrients=nutrients,nutrition=calculated,nutrition_source='menu_reference' if calculated else 'unknown',plan_id=row.id,meal_key=meal_key,record_group_id=str(data.client_record_id),skipped_foods=skipped_foods)
+        body=result.model_dump(mode='json')
+        session.add(MealEntry(id=result.id,owner_key=owner,client_record_id=str(uuid5(data.client_record_id,item['item_id'])),input_hash=input_hash,eaten_at=data.eaten_at,payload=body))
+        records.append(body)
+    meal.pop('undo_replacement',None)
+    meal.update(locked_before_record=meal['locked'],consumed=True,locked=True,skipped_items=[{'item_id':item['item_id'],'name':item['name']} for item in meal['items'] if item['item_id'] in skipped],records=[{'id':record['id'],'food_id':record['food_id'],'name':record['name']} for record in records],reason='먹은 것으로 기록했어요. 실제 분량은 식사 기록에서 확인하고 수정할 수 있어요.')
+    updated=update_plan(row,payload);result={'plan':updated,'records':records}
+    save_operation(session,row,data.client_record_id,input_hash,result)
     return result

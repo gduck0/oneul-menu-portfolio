@@ -218,7 +218,8 @@ def test_only_current_stage_endpoints_are_exposed():
     paths = set(app.openapi()['paths'])
     assert {'/api/auth/register', '/api/auth/login', '/api/auth/logout', '/api/auth/me', '/api/preferences'} <= paths
     assert {'/api/planner/menus', '/api/plans', '/api/plans/{plan_id}'} <= paths
-    assert not any(path.startswith(('/api/meals', '/api/feedback', '/api/recommendations', '/api/history', '/api/guest')) or path.endswith(('/record', '/actual-meals')) for path in paths)
+    assert {'/api/meals', '/api/feedback', '/api/guest-data/import', '/api/plans/{plan_id}/actual-meals'} <= paths
+    assert not any(path.startswith(('/api/recommendations', '/api/history')) for path in paths)
 
 
 def test_runtime_origins_follow_checkout_configuration(tmp_path):

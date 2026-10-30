@@ -90,3 +90,32 @@ class PlanResponse(StrictModel):
     target_difference: dict
     notes: list[str]
     catalog_version: str
+
+
+class PlanMealRecord(StrictModel):
+    client_record_id: UUID = Field(default_factory=uuid4)
+    expected_version: int = Field(ge=1)
+    eaten_at: datetime
+    amounts: dict[str, Decimal | None] = Field(default_factory=dict, max_length=20)
+    skipped_item_ids: list[str] = Field(default_factory=list, max_length=12)
+
+    @field_validator('skipped_item_ids')
+    @classmethod
+    def check_skipped_items(cls, values):
+        if len(set(values)) != len(values) or any(not value or len(value) > 80 for value in values):
+            raise ValueError('먹지 않은 음식을 중복 없이 선택해 주세요.')
+        return values
+
+    @field_validator('amounts')
+    @classmethod
+    def check_amounts(cls, values):
+        if any(value is not None and (not value.is_finite() or value <= 0 or value > 2000 or value != value.quantize(Decimal('.01'))) for value in values.values()):
+            raise ValueError('실제 먹은 양을 0보다 크고 2000g 이하로 소수 둘째 자리까지 입력해 주세요.')
+        return values
+
+    @field_validator('eaten_at')
+    @classmethod
+    def aware_date(cls, value):
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError('식사 시각에 시간대가 필요해요.')
+        return value

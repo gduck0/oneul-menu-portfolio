@@ -15,7 +15,7 @@
 | `GET /api/plans/{plan_id}` | 계획 조회 |
 | `PATCH /api/plans/{plan_id}` | 끼니/구성 음식·분량·고정·추천 변경 되돌리기 |
 
-실제 섭취 기록·평가 저장·체험 이관은 이 API 범위가 아니다. 메뉴를 직접 정하거나 양을 바꾸는 것은 계획 수정이다.
+메뉴를 직접 정하거나 양을 바꾸는 것은 계획 수정이다. 실제 섭취량은 별도 기록으로 저장한다. `POST /api/plans/{plan_id}/meals/{meal_key}/record`와 `GET /api/plans/{plan_id}/actual-meals`의 계약은 [기록 안내](records.md)를 참고한다.
 
 ## 요청과 설정
 

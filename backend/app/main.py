@@ -8,6 +8,8 @@ from app.food_api import router as food_router
 from app.account_api import router as account_router
 from app.preference_api import router as preference_router
 from app.planner_api import router as planner_router
+from app.personal_api import router as personal_router
+from app.continuity_api import router as continuity_router
 from app.runtime import application_origins
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
@@ -23,6 +25,8 @@ app.include_router(food_router)
 app.include_router(account_router)
 app.include_router(preference_router)
 app.include_router(planner_router)
+app.include_router(personal_router)
+app.include_router(continuity_router)
 
 
 @app.middleware('http')

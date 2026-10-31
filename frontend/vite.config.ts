@@ -15,6 +15,7 @@ if (apiPort === frontendPort) throw new Error('화면과 API의 포트는 서로
 
 export default defineConfig({
   plugins: [react()],
+  cacheDir: '../.local/vite-cache',
   server: {
     host: '127.0.0.1',
     port: frontendPort,

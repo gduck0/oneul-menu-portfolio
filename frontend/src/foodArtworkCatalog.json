@@ -1,0 +1,679 @@
+{
+  "catalogVersion": "e109c0becdb253c2",
+  "artworks": {
+    "plain-rice": {
+      "label": "흰밥",
+      "src": "/illustrations/food-rice-v1.webp"
+    },
+    "mixed-rice": {
+      "label": "잡곡·콩밥",
+      "src": "/illustrations/menu-mixed-rice-v1.webp"
+    },
+    "vegetable-rice": {
+      "label": "비빔·나물밥",
+      "src": "/illustrations/menu-vegetable-rice-v1.webp"
+    },
+    "fried-rice": {
+      "label": "일반 볶음밥",
+      "src": "/illustrations/menu-fried-rice-v1.webp"
+    },
+    "curry-rice": {
+      "label": "카레라이스",
+      "src": "/illustrations/menu-curry-rice-v1.webp"
+    },
+    "beef-rice": {
+      "label": "고기 덮밥",
+      "src": "/illustrations/menu-beef-rice-v1.webp"
+    },
+    "gimbap": {
+      "label": "속이 있는 김밥",
+      "src": "/illustrations/menu-gimbap-v1.webp"
+    },
+    "rice-ball": {
+      "label": "주먹밥",
+      "src": "/illustrations/menu-rice-ball-v1.webp"
+    },
+    "sandwich": {
+      "label": "샌드위치",
+      "src": "/illustrations/sandwich-v1-480.webp"
+    },
+    "light-porridge": {
+      "label": "밝은색 쌀죽",
+      "src": "/illustrations/menu-light-porridge-v1.webp"
+    },
+    "broth-noodles": {
+      "label": "맑은 국수·칼국수",
+      "src": "/illustrations/menu-broth-noodles-v1.webp"
+    },
+    "spicy-noodles": {
+      "label": "비빔면류",
+      "src": "/illustrations/menu-spicy-noodles-v1.webp"
+    },
+    "kimchi-noodles": {
+      "label": "김치말이·열무국수",
+      "src": "/illustrations/menu-kimchi-noodles-v1.webp"
+    },
+    "bulgogi": {
+      "label": "소불고기",
+      "src": "/illustrations/menu-bulgogi-v1.webp"
+    },
+    "grilled-chicken": {
+      "label": "닭구이",
+      "src": "/illustrations/menu-grilled-chicken-v1.webp"
+    },
+    "grilled-fish": {
+      "label": "흰살·등푸른 생선구이",
+      "src": "/illustrations/menu-grilled-fish-v1.webp"
+    },
+    "braised-fish": {
+      "label": "생선조림",
+      "src": "/illustrations/menu-braised-fish-v1.webp"
+    },
+    "stirfried-seafood": {
+      "label": "매콤한 해산물볶음",
+      "src": "/illustrations/menu-stirfried-seafood-v1.webp"
+    },
+    "sauced-tofu": {
+      "label": "양념 두부요리",
+      "src": "/illustrations/menu-sauced-tofu-v1.webp"
+    },
+    "rolled-egg": {
+      "label": "달걀말이",
+      "src": "/illustrations/menu-rolled-egg-v1.webp"
+    },
+    "kimchi-stew": {
+      "label": "김치찌개",
+      "src": "/illustrations/menu-kimchi-stew-v1.webp"
+    },
+    "soybean-stew": {
+      "label": "된장·청국장찌개",
+      "src": "/illustrations/menu-soybean-stew-v1.webp"
+    },
+    "seaweed-soup": {
+      "label": "미역국",
+      "src": "/illustrations/menu-seaweed-soup-v1.webp"
+    },
+    "soybean-soup": {
+      "label": "된장국",
+      "src": "/illustrations/menu-soybean-soup-v1.webp"
+    },
+    "clear-soup": {
+      "label": "맑은 국",
+      "src": "/illustrations/menu-clear-soup-v1.webp"
+    },
+    "beef-soup": {
+      "label": "고기탕",
+      "src": "/illustrations/menu-beef-soup-v1.webp"
+    },
+    "leafy-vegetables": {
+      "label": "잎나물",
+      "src": "/illustrations/menu-leafy-vegetables-v1.webp"
+    },
+    "sprouts": {
+      "label": "콩나물·숙주나물",
+      "src": "/illustrations/menu-sprouts-v1.webp"
+    },
+    "root-vegetables": {
+      "label": "도라지·무나물",
+      "src": "/illustrations/menu-root-vegetables-v1.webp"
+    },
+    "stirfried-vegetables": {
+      "label": "채소 채볶음",
+      "src": "/illustrations/menu-stirfried-vegetables-v1.webp"
+    },
+    "salad": {
+      "label": "채소샐러드",
+      "src": "/illustrations/menu-salad-v1.webp"
+    },
+    "steamed-sweet-potato": {
+      "label": "찐고구마",
+      "src": "/illustrations/menu-steamed-sweet-potato-v1.webp"
+    }
+  },
+  "menus": {
+    "menu-d7b9fe9bfb955e21": {
+      "name": "쌀밥",
+      "artwork": "plain-rice"
+    },
+    "menu-c4d2f2acbba7cf12": {
+      "name": "찰밥",
+      "artwork": "plain-rice"
+    },
+    "menu-e15d4e5018ffedfc": {
+      "name": "귀리밥",
+      "artwork": "mixed-rice"
+    },
+    "menu-912324bc459c72d4": {
+      "name": "보리밥",
+      "artwork": "mixed-rice"
+    },
+    "menu-5250d98c12497e67": {
+      "name": "기장밥",
+      "artwork": "mixed-rice"
+    },
+    "menu-6336ec5263f83af7": {
+      "name": "차조밥",
+      "artwork": "mixed-rice"
+    },
+    "menu-600d1d56583a0fb1": {
+      "name": "콩밥 · 검정콩",
+      "artwork": "mixed-rice"
+    },
+    "menu-e8a07abbbedfc206": {
+      "name": "콩밥 · 강낭콩",
+      "artwork": "mixed-rice"
+    },
+    "menu-574c26d169130a08": {
+      "name": "비빔밥",
+      "artwork": "vegetable-rice"
+    },
+    "menu-d55769641999361c": {
+      "name": "돌솥비빔밥",
+      "artwork": "vegetable-rice"
+    },
+    "menu-69539feacc3f270a": {
+      "name": "콩나물밥",
+      "artwork": "vegetable-rice"
+    },
+    "menu-d08af66eedd81f76": {
+      "name": "곤드레나물밥",
+      "artwork": "vegetable-rice"
+    },
+    "menu-ba404a39771eaabc": {
+      "name": "계란볶음밥",
+      "artwork": "fried-rice"
+    },
+    "menu-be557067cc778936": {
+      "name": "새우볶음밥",
+      "artwork": "fried-rice"
+    },
+    "menu-9231223cb0197053": {
+      "name": "채소볶음밥",
+      "artwork": "fried-rice"
+    },
+    "menu-77551608f5aced7e": {
+      "name": "볶음밥 · 소고기",
+      "artwork": "fried-rice"
+    },
+    "menu-33ef03a8c7d98eb2": {
+      "name": "볶음밥 · 참치",
+      "artwork": "fried-rice"
+    },
+    "menu-cb7a3ed014cd04b4": {
+      "name": "볶음밥 · 해물",
+      "artwork": "fried-rice"
+    },
+    "menu-265c10dc96b424eb": {
+      "name": "볶음밥 · 표고버섯",
+      "artwork": "fried-rice"
+    },
+    "menu-049191529a5b64d6": {
+      "name": "김치볶음밥",
+      "artwork": null
+    },
+    "menu-d2fd68fd5ccebd52": {
+      "name": "카레라이스",
+      "artwork": "curry-rice"
+    },
+    "menu-7a63b27b033a5873": {
+      "name": "불고기덮밥",
+      "artwork": "beef-rice"
+    },
+    "menu-f1f6402697da6fcb": {
+      "name": "계란덮밥",
+      "artwork": null
+    },
+    "menu-a34a126e3fcaed8f": {
+      "name": "오므라이스",
+      "artwork": null
+    },
+    "menu-5a15efe8a053eb5a": {
+      "name": "김밥",
+      "artwork": "gimbap"
+    },
+    "menu-dbdc0d056418820d": {
+      "name": "참치김밥",
+      "artwork": "gimbap"
+    },
+    "menu-6ae74785b02dec89": {
+      "name": "채소김밥",
+      "artwork": "gimbap"
+    },
+    "menu-771e4c5298383b99": {
+      "name": "김밥 · 김치",
+      "artwork": "gimbap"
+    },
+    "menu-adfcd1fe8747f715": {
+      "name": "김밥 · 소고기",
+      "artwork": "gimbap"
+    },
+    "menu-a3b47eb0d7760922": {
+      "name": "치즈김밥",
+      "artwork": "gimbap"
+    },
+    "menu-e40a463054555a3a": {
+      "name": "김밥 · 돈가스",
+      "artwork": "gimbap"
+    },
+    "menu-02fbc361c34a1fc6": {
+      "name": "충무김밥",
+      "artwork": null
+    },
+    "menu-e0f7d1b9c15ab44a": {
+      "name": "주먹밥 · 멸치",
+      "artwork": "rice-ball"
+    },
+    "menu-eb664d77bb40721c": {
+      "name": "주먹밥 · 소고기",
+      "artwork": "rice-ball"
+    },
+    "menu-8cbf732111f55232": {
+      "name": "초밥 · 유부초밥",
+      "artwork": null
+    },
+    "menu-f8853f57d3382daa": {
+      "name": "햄치즈샌드위치",
+      "artwork": "sandwich"
+    },
+    "menu-cb3f5119ece4b9ef": {
+      "name": "샌드위치 · 닭가슴살",
+      "artwork": "sandwich"
+    },
+    "menu-4339c45c8ba08631": {
+      "name": "샌드위치 · 참치",
+      "artwork": "sandwich"
+    },
+    "menu-a1e9040d397ee1b9": {
+      "name": "샌드위치 · 채소",
+      "artwork": "sandwich"
+    },
+    "menu-9c092e6791b8c104": {
+      "name": "샌드위치 · 햄 · 달걀",
+      "artwork": "sandwich"
+    },
+    "menu-3aaa3f41c8a39c3a": {
+      "name": "샌드위치 · 햄 · 치즈 · 채소",
+      "artwork": "sandwich"
+    },
+    "menu-23bfa68c85beec54": {
+      "name": "샌드위치 · 소고기",
+      "artwork": "sandwich"
+    },
+    "menu-88adde41244de265": {
+      "name": "채소죽",
+      "artwork": "light-porridge"
+    },
+    "menu-6089bd2994c050ca": {
+      "name": "전복죽",
+      "artwork": "light-porridge"
+    },
+    "menu-05be6b88531644b5": {
+      "name": "닭죽",
+      "artwork": "light-porridge"
+    },
+    "menu-fd20e2126e8b5ba6": {
+      "name": "소고기버섯죽",
+      "artwork": "light-porridge"
+    },
+    "menu-17bc6e7a8082f59a": {
+      "name": "참치죽",
+      "artwork": "light-porridge"
+    },
+    "menu-f9ce8a4abdeca446": {
+      "name": "게살죽",
+      "artwork": "light-porridge"
+    },
+    "menu-5e7bfc47d30595f8": {
+      "name": "쌀죽(흰죽)",
+      "artwork": "light-porridge"
+    },
+    "menu-9cc07c582b70e2c7": {
+      "name": "잣죽",
+      "artwork": "light-porridge"
+    },
+    "menu-aaa22693a9fc94aa": {
+      "name": "팥죽",
+      "artwork": null
+    },
+    "menu-aa436321cdd996ea": {
+      "name": "흑임자죽",
+      "artwork": null
+    },
+    "menu-5bc6fdb9327f4501": {
+      "name": "국수 · 잔치국수",
+      "artwork": "broth-noodles"
+    },
+    "menu-c32ee6456393ca88": {
+      "name": "칼국수",
+      "artwork": "broth-noodles"
+    },
+    "menu-7f823b62cfa00829": {
+      "name": "칼국수 · 바지락",
+      "artwork": "broth-noodles"
+    },
+    "menu-879e8132989e3f31": {
+      "name": "칼국수 · 닭고기",
+      "artwork": "broth-noodles"
+    },
+    "menu-1d3a148dfb7532d1": {
+      "name": "칼국수 · 들깨",
+      "artwork": "broth-noodles"
+    },
+    "menu-482a5e4f7ce7fe4a": {
+      "name": "칼국수 · 해물",
+      "artwork": "broth-noodles"
+    },
+    "menu-2d8f66857c32394b": {
+      "name": "국수 · 비빔국수",
+      "artwork": "spicy-noodles"
+    },
+    "menu-56f22ceda56950eb": {
+      "name": "국수 · 막국수",
+      "artwork": "spicy-noodles"
+    },
+    "menu-3083cb767b81d191": {
+      "name": "쫄면",
+      "artwork": "spicy-noodles"
+    },
+    "menu-cd26505270b72060": {
+      "name": "냉면 · 비빔냉면",
+      "artwork": "spicy-noodles"
+    },
+    "menu-4103b80f124ec868": {
+      "name": "국수 · 김치말이국수",
+      "artwork": "kimchi-noodles"
+    },
+    "menu-2f8d30b27dd7e455": {
+      "name": "국수 · 열무김치",
+      "artwork": "kimchi-noodles"
+    },
+    "menu-e156015758fb6cd0": {
+      "name": "콩국수",
+      "artwork": null
+    },
+    "menu-11a41c91582062e1": {
+      "name": "자장면",
+      "artwork": null
+    },
+    "menu-ce5ff89346f987be": {
+      "name": "짬뽕",
+      "artwork": null
+    },
+    "menu-84715b2dff40d717": {
+      "name": "냉면 · 물냉면",
+      "artwork": null
+    },
+    "menu-114967a5a956f5fb": {
+      "name": "수제비",
+      "artwork": null
+    },
+    "menu-1e223bd1bfd2a452": {
+      "name": "떡국",
+      "artwork": null
+    },
+    "menu-694b11f55ee86234": {
+      "name": "떡볶이",
+      "artwork": null
+    },
+    "menu-d8f69aee0943d957": {
+      "name": "소불고기",
+      "artwork": "bulgogi"
+    },
+    "menu-c8a66291180e5b37": {
+      "name": "닭구이",
+      "artwork": "grilled-chicken"
+    },
+    "menu-f6e7243c4d8840c5": {
+      "name": "닭볶음탕",
+      "artwork": null
+    },
+    "menu-8de470adf6b746e7": {
+      "name": "고등어구이 · 석쇠",
+      "artwork": "grilled-fish"
+    },
+    "menu-4675a0759a19ebff": {
+      "name": "삼치구이",
+      "artwork": "grilled-fish"
+    },
+    "menu-36ac383967f92015": {
+      "name": "갈치구이 · 기름",
+      "artwork": "grilled-fish"
+    },
+    "menu-f65452ebff61198a": {
+      "name": "가자미구이",
+      "artwork": "grilled-fish"
+    },
+    "menu-be07157bacc1f3f1": {
+      "name": "연어구이",
+      "artwork": null
+    },
+    "menu-dab1cb75f3e3b59b": {
+      "name": "고등어조림",
+      "artwork": "braised-fish"
+    },
+    "menu-8dff3709db077f84": {
+      "name": "가자미조림",
+      "artwork": "braised-fish"
+    },
+    "menu-11effa09adb599a7": {
+      "name": "오징어볶음",
+      "artwork": "stirfried-seafood"
+    },
+    "menu-3ced2295a36084e1": {
+      "name": "낙지볶음",
+      "artwork": "stirfried-seafood"
+    },
+    "menu-8ffcc2b81f6ccd43": {
+      "name": "주꾸미볶음",
+      "artwork": "stirfried-seafood"
+    },
+    "menu-db303b59f1c83058": {
+      "name": "두부부침",
+      "artwork": null
+    },
+    "menu-3be9cdb9836df58e": {
+      "name": "두부조림",
+      "artwork": "sauced-tofu"
+    },
+    "menu-83243bf9fcb60853": {
+      "name": "마파두부",
+      "artwork": "sauced-tofu"
+    },
+    "menu-386213b8649bcf0d": {
+      "name": "두부김치",
+      "artwork": null
+    },
+    "menu-6cea74b1638d8435": {
+      "name": "삶은 달걀",
+      "artwork": null
+    },
+    "menu-aaf4e180086c467f": {
+      "name": "달걀말이",
+      "artwork": "rolled-egg"
+    },
+    "menu-3181a725712997f1": {
+      "name": "달걀말이 · 채소",
+      "artwork": "rolled-egg"
+    },
+    "menu-929a651376af3c1b": {
+      "name": "채소달걀찜",
+      "artwork": null
+    },
+    "menu-b7f16df5d6df7ed7": {
+      "name": "달걀프라이",
+      "artwork": null
+    },
+    "menu-6bbb7550e95f39f6": {
+      "name": "장조림 · 소고기",
+      "artwork": null
+    },
+    "menu-94aeee7a621fa98e": {
+      "name": "장조림 · 달걀",
+      "artwork": null
+    },
+    "menu-332e75d192dae1d4": {
+      "name": "버섯구이 · 새송이버섯",
+      "artwork": null
+    },
+    "menu-02035faad8270f27": {
+      "name": "돼지고기김치찌개",
+      "artwork": "kimchi-stew"
+    },
+    "menu-b2b553ede34dc4e6": {
+      "name": "김치찌개 · 참치",
+      "artwork": "kimchi-stew"
+    },
+    "menu-0717bf108c8743c0": {
+      "name": "김치찌개 · 꽁치",
+      "artwork": "kimchi-stew"
+    },
+    "menu-fa09ba8b4950af99": {
+      "name": "된장찌개",
+      "artwork": "soybean-stew"
+    },
+    "menu-cbbf63e4789c8554": {
+      "name": "청국장찌개",
+      "artwork": "soybean-stew"
+    },
+    "menu-fb2ad790d87fce1d": {
+      "name": "순두부찌개 · 김치",
+      "artwork": null
+    },
+    "menu-d3e304f231fb5685": {
+      "name": "소고기미역국",
+      "artwork": "seaweed-soup"
+    },
+    "menu-0db57afc8fd87b7a": {
+      "name": "미역국 · 바지락",
+      "artwork": "seaweed-soup"
+    },
+    "menu-260fdca3dd26fc74": {
+      "name": "미역국 · 북어",
+      "artwork": "seaweed-soup"
+    },
+    "menu-e9b00661771feece": {
+      "name": "시금치된장국",
+      "artwork": "soybean-soup"
+    },
+    "menu-5eb747ff35fa4ea5": {
+      "name": "된장국 · 배추",
+      "artwork": "soybean-soup"
+    },
+    "menu-208cf4f5dc342255": {
+      "name": "된장국 · 냉이",
+      "artwork": "soybean-soup"
+    },
+    "menu-6b0acd53783d3f8c": {
+      "name": "된장국 · 감자",
+      "artwork": "soybean-soup"
+    },
+    "menu-36dced1d93cedc02": {
+      "name": "콩나물국",
+      "artwork": "clear-soup"
+    },
+    "menu-756dc59f410fb3f5": {
+      "name": "무국 · 소고기",
+      "artwork": "clear-soup"
+    },
+    "menu-c0a73e3a4d8d6678": {
+      "name": "달걀국",
+      "artwork": "clear-soup"
+    },
+    "menu-ca6eab077df9e08c": {
+      "name": "육개장",
+      "artwork": null
+    },
+    "menu-53999b42d9c77a56": {
+      "name": "갈비탕",
+      "artwork": "beef-soup"
+    },
+    "menu-5a8a42a95b28d8d6": {
+      "name": "곰탕",
+      "artwork": "beef-soup"
+    },
+    "menu-826b150ca17e1fa2": {
+      "name": "시금치나물",
+      "artwork": "leafy-vegetables"
+    },
+    "menu-f2459dafc8fbe5e4": {
+      "name": "취나물무침",
+      "artwork": "leafy-vegetables"
+    },
+    "menu-0ae55adeed4eafa4": {
+      "name": "콩나물무침",
+      "artwork": "sprouts"
+    },
+    "menu-82027fa6f73ad773": {
+      "name": "숙주나물",
+      "artwork": "sprouts"
+    },
+    "menu-8bfce1aa39296468": {
+      "name": "도라지나물무침",
+      "artwork": "root-vegetables"
+    },
+    "menu-5307db4726470a91": {
+      "name": "무나물무침",
+      "artwork": "root-vegetables"
+    },
+    "menu-84456d0e15ef25fa": {
+      "name": "가지나물",
+      "artwork": null
+    },
+    "menu-fabd09cdb9f96d16": {
+      "name": "고사리나물무침",
+      "artwork": null
+    },
+    "menu-d38f5b40a5f8323d": {
+      "name": "애호박볶음",
+      "artwork": "stirfried-vegetables"
+    },
+    "menu-661abc1da6478ac2": {
+      "name": "감자볶음",
+      "artwork": "stirfried-vegetables"
+    },
+    "menu-0f506680fc70d670": {
+      "name": "감자조림",
+      "artwork": null
+    },
+    "menu-a3988306f298ff65": {
+      "name": "채소샐러드",
+      "artwork": "salad"
+    },
+    "menu-d86acb7f13634723": {
+      "name": "샐러드 · 양상추",
+      "artwork": "salad"
+    },
+    "menu-87fa12333a07e5bc": {
+      "name": "샐러드 · 양배추",
+      "artwork": "salad"
+    },
+    "menu-b2395b75511047da": {
+      "name": "닭가슴살샐러드",
+      "artwork": null
+    },
+    "menu-17069dc093c4be80": {
+      "name": "겉절이 · 배추",
+      "artwork": null
+    },
+    "menu-ba1ea1231c336418": {
+      "name": "깍두기",
+      "artwork": null
+    },
+    "menu-5829ac727708c409": {
+      "name": "나박김치",
+      "artwork": null
+    },
+    "menu-f569f09eca8a98c7": {
+      "name": "감자 · 찐감자",
+      "artwork": null
+    },
+    "menu-72dd1a951c65711d": {
+      "name": "고구마 · 찐고구마",
+      "artwork": "steamed-sweet-potato"
+    },
+    "menu-321da0768d28d159": {
+      "name": "고구마 · 밤고구마 · 삶은것",
+      "artwork": "steamed-sweet-potato"
+    }
+  }
+}

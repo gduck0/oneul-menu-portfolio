@@ -1,0 +1,7 @@
+import { number } from './FoodCard'
+import type { Food, Search } from './types'
+
+export function GroupedFoods({ search, selected, onSelect }: { search: Search; selected?: string; onSelect: (food: Food) => void }) {
+  const groups = search.groups ?? search.items.map(food => ({ name: food.name.replaceAll('_', ' · '), company: food.company, selected: food, variants: [food] }))
+  return <>{groups.map(group => <div className="food-group-entry" key={`${group.name}:${group.company ?? ''}`}><button className={`food-option ${selected === group.selected.id ? 'selected' : ''}`} aria-pressed={selected === group.selected.id} onClick={() => onSelect(group.selected)}><span><strong>{group.name}</strong><small>{group.company ?? '일반 음식'} · {number(group.selected.basis_amount)}{group.selected.basis_unit} 기준</small></span><span className="option-energy">{number(group.selected.nutrients.energy_kcal)}{group.selected.nutrients.energy_kcal !== null && <small>kcal</small>}</span></button><details><summary>{group.variants.length > 1 ? `연결 자료 ${group.variants.length}개 · 기준량과 출처 확인` : '기준량과 출처 확인'}</summary>{group.variants.map(food => <button key={food.id} onClick={() => onSelect(food)}>{food.name.replaceAll('_', ' · ')} · {number(food.basis_amount)}{food.basis_unit} · {number(food.nutrients.energy_kcal)}kcal<br />{food.source.food_code} · {food.source.reference_date} · 이 자료 선택</button>)}</details></div>)}</>
+}

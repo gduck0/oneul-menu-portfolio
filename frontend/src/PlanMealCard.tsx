@@ -5,10 +5,17 @@ import { MealConditions } from './MealConditions'
 import { Icon } from './BrandArtwork'
 import { FoodArtwork } from './FoodArtwork'
 import { grams, kcal, roleLabels } from './plannerDisplay'
+import type { Feedback } from './types'
 import type { MealConstraints, PlanMeal } from './plannerTypes'
 import { portionPreview } from './planEnergy'
+import { ActualMealSummary } from './ActualMealSummary'
+import type { ActualMeal } from './plannerTypes'
 
 type Props = {
+  actual?: ActualMeal
+  actualLoading: boolean
+  actualError: string
+  onActualRetry: () => void
   focusRequest?: { id: number; section: 'portion' | 'conditions' | 'overview' }
   onConditionRecommend?: () => void
   dayEnergy?: string | null
@@ -17,13 +24,18 @@ type Props = {
   meal: PlanMeal
   constraints: MealConstraints
   pending: boolean
+  feedback: Feedback[]
   amounts: Record<string, Amount>
   onAmount: (id: string, value: Amount) => void
   onConstraint: (value: Partial<MealConstraints>) => void
   onEdit: (action: string, fields?: Record<string, unknown>) => void
   onPick: (action?: 'set' | 'add' | 'update_item', itemId?: string) => void
+  onRecord: () => void
+  onJournal?: () => void
+  onUndo?: () => void
   onCompare?: () => void
   onOverview?: () => void
+  onFeedback: (value: Feedback | null, previousId?: string) => void
 }
 
 export function PlanMealCard({
@@ -35,13 +47,20 @@ export function PlanMealCard({
   onConstraint,
   onEdit,
   onPick,
+  onRecord,
+  onJournal,
+  onUndo,
   onCompare,
   onOverview,
   focusRequest,
   onConditionRecommend,
   dayEnergy = null,
   energyTarget = 0,
-  completeEnergy = false
+  completeEnergy = false,
+  actual,
+  actualLoading,
+  actualError,
+  onActualRetry
 }: Props) {
   const card = useRef<HTMLElement>(null),
     portionSection = useRef<HTMLDetailsElement>(null),
@@ -174,7 +193,7 @@ export function PlanMealCard({
           <h2 tabIndex={-1}>{meal.label} 식단</h2>
           <p className="editor-description">
             {meal.consumed
-              ? '기록된 식단의 계획 메뉴와 분량을 확인해요.'
+              ? '실제로 먹은 양을 먼저 보고, 계획과 비교해요.'
               : '이 끼니만 바꾸고, 다른 끼니는 그대로 두세요.'}
           </p>
         </div>
@@ -197,9 +216,46 @@ export function PlanMealCard({
           </button>
         )}
       </div>
-      {plannedDetails}
       {meal.consumed ? (
-        <p className="meal-complete">이미 기록된 식단이에요. 표시된 메뉴·영양은 계획 기준이에요.</p>
+        <>
+          <ActualMealSummary
+            meal={meal}
+            actual={actual}
+            loading={actualLoading}
+            error={actualError}
+            onRetry={onActualRetry}
+          />
+          <details className="completed-plan-comparison">
+            <summary>계획한 메뉴·영양과 비교</summary>
+            {plannedDetails}
+          </details>
+        </>
+      ) : (
+        plannedDetails
+      )}
+      {meal.consumed ? (
+        <div className="meal-complete">
+          <p>실제 먹은 양·시각은 식사 기록에서 확인하고 고칠 수 있어요.</p>
+          {Boolean(meal.skipped_items?.length) && (
+            <p className="journal-group-note">
+              이번에는 안 먹었어요: {meal.skipped_items!.map((item) => item.name).join(', ')}. 위
+              메뉴와 영양은 계획 기준이에요.
+            </p>
+          )}
+          <button className="secondary" disabled={pending} onClick={onJournal}>
+            기록 보기·수정
+          </button>
+          <details>
+            <summary>잘못 눌렀나요?</summary>
+            <p>
+              이 끼니의 식사 완료를 되돌려요. 원기록과 평가는 보존하며, 취소한 기록에서 다시 볼 수
+              있어요.
+            </p>
+            <button className="text-button" disabled={pending} onClick={onUndo}>
+              식사 완료 되돌리기
+            </button>
+          </details>
+        </div>
       ) : (
         <div className="meal-editor-footer">
           <span className="edit-scope">
@@ -217,6 +273,14 @@ export function PlanMealCard({
             >
               <Icon name="refresh" />
               다른 메뉴 추천
+            </button>
+            <button
+              className="secondary"
+              disabled={pending || !meal.items.length}
+              onClick={onRecord}
+            >
+              <Icon name="check" />
+              먹은 뒤 기록하기
             </button>
           </div>
           {meal.undo_replacement && (
@@ -263,7 +327,8 @@ export function PlanMealCard({
           {meal.locked && <small>다른 메뉴를 추천받으려면 위의 고정 해제를 눌러 주세요.</small>}
           {dirty && (
             <small>
-              {'구성·양 조절에서 입력한 양을 적용하거나 원래대로 돌린 뒤 추천받을 수 있어요. '}
+              구성·양 조절에서 입력한 양을 적용하거나 원래대로 돌린 뒤 추천받을 수 있어요. 기록할
+              때는 실제 먹은 양을 따로 정해요.
             </small>
           )}
         </div>

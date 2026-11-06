@@ -12,7 +12,7 @@ export function AuthDialog({ onClose, onIdentity }: { onClose: () => void; onIde
   return <dialog ref={dialog} className="auth-dialog" aria-labelledby="auth-title" onCancel={event => { if (pending) event.preventDefault(); else onClose() }}>
     <button type="button" className="dialog-close" aria-label="닫기" onClick={onClose} disabled={pending}><Icon name="close" /></button>
     <span className="dialog-brand" aria-hidden="true"><BrandMark /></span>
-    <h2 id="auth-title">내 식단을 이어가세요</h2><p className="muted">로그인하면 내 설정과 식단을 계정에 저장해요.<br />체험 자료와 계정 자료는 따로 보관해요.</p>
+    <h2 id="auth-title">한 끼의 기록을 이어가세요</h2><p className="muted">로그인하면 다른 기기에서도 식단과 기록을 이어볼 수 있어요.<br />체험하며 남긴 자료는 가져올지 직접 선택할 수 있어요.</p>
     <div className="segmented"><button type="button" className={mode === 'login' ? 'active' : ''} aria-pressed={mode === 'login'} disabled={pending} onClick={() => { setMode('login'); setError('') }}>로그인</button><button type="button" className={mode === 'register' ? 'active' : ''} aria-pressed={mode === 'register'} disabled={pending} onClick={() => { setMode('register'); setError('') }}>회원가입</button></div>
     <form onSubmit={async event => {
       event.preventDefault(); setError('')

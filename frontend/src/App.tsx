@@ -4,15 +4,17 @@ import { AuthDialog } from './AuthDialog'
 import { RecommendationSettingsDialog } from './RecommendationSettingsDialog'
 import { UnsavedSettingsDialog } from './UnsavedSettingsDialog'
 import { PersonalSettings } from './PersonalSettings'
+import { MealJournal } from './MealJournal'
 import { PlannerView } from './PlannerView'
 import { ConnectionNotice } from './ConnectionNotice'
+import { GuestImport } from './GuestImport'
 import { BrandMark } from './BrandArtwork'
-import type { PersonalSettings as Settings, User } from './types'
+import type { Feedback, PersonalSettings as Settings, User } from './types'
 
-type View = 'planner' | 'settings'
+type View = 'planner' | 'settings' | 'meals'
 const readView = (): View => {
   const value = window.location.hash.replace('#/', '')
-  return value === 'settings' ? value : 'planner'
+  return value === 'settings' || value === 'meals' ? value : 'planner'
 }
 
 export function App() {
@@ -30,8 +32,10 @@ export function App() {
     [personalReady, setPersonalReady] = useState(false)
   const [personalError, setPersonalError] = useState(''),
     [personalAttempt, setPersonalAttempt] = useState(0)
-  const [settings, setSettings] = useState<Settings | null>(null)
-  const settingsVersion = useRef(0)
+  const [settings, setSettings] = useState<Settings | null>(null),
+    [feedback, setFeedback] = useState<Feedback[]>([])
+  const settingsVersion = useRef(0),
+    feedbackVersion = useRef(0)
   const authRequest = useRef<AbortController | null>(null),
     personalRequest = useRef<AbortController | null>(null)
   const [notice, setNotice] = useState(''),
@@ -41,6 +45,8 @@ export function App() {
   const [resumePlanRequest, setResumePlanRequest] = useState(0),
     setupSequence = useRef(0)
   const resumePlannerDraft = useRef(false)
+  const [dataRevision, setDataRevision] = useState(0),
+    [importRevision, setImportRevision] = useState(0)
   const settingsDirty = useRef(false),
     [settingsUnsaved, setSettingsUnsaved] = useState(false)
   const settingsDirtyChanged = useCallback((dirty: boolean) => {
@@ -121,6 +127,7 @@ export function App() {
     setPersonalError('')
     setPersonalLoading(false)
     setSettings(null)
+    setFeedback([])
     setPersonalReady(false)
     setFirstSetup(false)
     setPlanSetupRequest(0)
@@ -152,14 +159,19 @@ export function App() {
     if (!authReady) return
     const controller = new AbortController(),
       version = identityVersion.current
-    const savedVersion = settingsVersion.current
+    const savedVersion = settingsVersion.current,
+      ratingsVersion = feedbackVersion.current
     personalRequest.current = controller
     setPersonalLoading(true)
     setPersonalError('')
-    api<Settings>('/preferences', {}, controller.signal)
-      .then((preferences) => {
+    Promise.all([
+      api<Settings>('/preferences', {}, controller.signal),
+      api<Feedback[]>('/feedback', {}, controller.signal)
+    ])
+      .then(([preferences, ratings]) => {
         if (controller.signal.aborted || version !== identityVersion.current) return
         if (savedVersion === settingsVersion.current) setSettings(preferences)
+        if (ratingsVersion === feedbackVersion.current) setFeedback(ratings)
         setPersonalReady(true)
       })
       .catch((problem) => {
@@ -171,7 +183,7 @@ export function App() {
           setPersonalLoading(false)
       })
     return () => controller.abort()
-  }, [authReady, identityEpoch, personalAttempt])
+  }, [authReady, identityEpoch, importRevision, personalAttempt])
   const saveSettings = async (value: Settings) => {
     const version = identityVersion.current
     const saved = await api<Settings>('/preferences', {
@@ -183,6 +195,15 @@ export function App() {
       setSettings(saved)
     }
     return saved
+  }
+  const feedbackChanged = (value: Feedback | null, previousId?: string) => {
+    if (identityEpoch !== identityVersion.current) return
+    feedbackVersion.current++
+    setFeedback((old) =>
+      value
+        ? [value, ...old.filter((item) => item.id !== value.id)]
+        : old.filter((item) => item.id !== previousId)
+    )
   }
   const continueToPlan = () => {
     if (identityEpoch !== identityVersion.current) return
@@ -213,6 +234,7 @@ export function App() {
           {(
             [
               ['planner', '오늘 식단'],
+              ['meals', '식사 기록'],
               ['settings', '내 설정']
             ] as const
           ).map(([key, label]) => (
@@ -274,10 +296,21 @@ export function App() {
             key={`personal:${identityEpoch}:${personalAttempt}`}
             loading={personalLoading}
             error={personalError}
-            loadingText="내 설정을 불러오고 있어요"
-            errorTitle="내 설정을 불러오지 못했어요"
+            loadingText="설정과 메뉴 평가를 불러오고 있어요"
+            errorTitle="설정과 메뉴 평가를 불러오지 못했어요"
             retryLabel="설정 다시 불러오기"
             onRetry={() => setPersonalAttempt((value) => value + 1)}
+          />
+        )}
+        {user && (
+          <GuestImport
+            key={user.id}
+            accountId={user.id}
+            inSettings={view === 'settings'}
+            onImported={() => {
+              setImportRevision((value) => value + 1)
+              setNotice('')
+            }}
           />
         )}
         {error && (
@@ -294,14 +327,18 @@ export function App() {
           <>
             <div hidden={view !== 'planner'}>
               <PlannerView
-                key={user?.id ?? 'guest'}
+                key={`${user?.id ?? 'guest'}:${importRevision}`}
                 account={Boolean(user)}
                 settings={settings}
+                feedback={feedback}
+                onFeedback={feedbackChanged}
+                revision={dataRevision}
                 setupRequest={planSetupRequest}
                 resumeRequest={resumePlanRequest}
                 onSetupHandled={() => setPlanSetupRequest(0)}
                 settingsUnsaved={settingsUnsaved}
                 beforeRecommend={beforeRecommend}
+                onJournal={() => setView('meals')}
                 onSettings={() => {
                   resumePlannerDraft.current = true
                   setView('settings')
@@ -319,6 +356,15 @@ export function App() {
                 onContinue={continueToPlan}
               />
             </div>
+            {view === 'meals' && (
+              <MealJournal
+                key={`${user?.id ?? 'guest'}:${importRevision}`}
+                account={Boolean(user)}
+                feedback={feedback}
+                onFeedback={feedbackChanged}
+                onRecordsChange={() => setDataRevision((value) => value + 1)}
+              />
+            )}
           </>
         )}
       </main>

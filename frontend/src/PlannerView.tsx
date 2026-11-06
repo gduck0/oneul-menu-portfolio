@@ -5,15 +5,18 @@ import type { Amount } from './PortionInput'
 import { MealConditions } from './MealConditions'
 import { PlanMealCard } from './PlanMealCard'
 import { MealOverview } from './MealOverview'
+import { useActualMeals } from './useActualMeals'
 import { DailyNutrition } from './DailyNutrition'
 import { EnergyGap } from './EnergyGap'
 import { PlanSetupSummary } from './PlanSetupSummary'
 import { applyPreparation, extendPreparation, startingPreparation } from './preparationDefaults'
 import type { PreparationMode } from './preparationDefaults'
 import { ConnectionNotice } from './ConnectionNotice'
+import { MealRecordDialog } from './MealRecordDialog'
+import type { Meal } from './types'
 import { EditorialArtwork, Icon } from './BrandArtwork'
 import { kcal, mealLabels, roleLabels } from './plannerDisplay'
-import type { PersonalSettings, Preference } from './types'
+import type { Feedback, PersonalSettings, Preference } from './types'
 import type {
   FixedMeal,
   MealConstraints,
@@ -47,8 +50,12 @@ const slots = (count: string): MealKey[] =>
 export function PlannerView({
   account,
   settings,
+  feedback,
+  onFeedback,
   onSettings,
+  onJournal,
   onCompare,
+  revision = 0,
   setupRequest = 0,
   resumeRequest = 0,
   onSetupHandled,
@@ -60,10 +67,14 @@ export function PlannerView({
   onSetupHandled?: () => void
   settingsUnsaved?: boolean
   beforeRecommend?: () => Promise<boolean>
+  onJournal?: () => void
   onCompare?: () => void
+  revision?: number
   onSettings: () => void
   account: boolean
   settings: PersonalSettings | null
+  feedback: Feedback[]
+  onFeedback: (value: Feedback | null, previousId?: string) => void
 }) {
   const [energy, setEnergy] = useState('1800'),
     [day, setDay] = useState(today()),
@@ -75,6 +86,7 @@ export function PlannerView({
   const [plan, setPlan] = useState<Plan | null>(null),
     [history, setHistory] = useState<Plan[]>([]),
     [available, setAvailable] = useState(0)
+  const actual = useActualMeals(plan, revision)
   const [setupOpen, setSetupOpen] = useState(false)
   const [setupDetailsOpen, setSetupDetailsOpen] = useState(false)
   const [selectedMeal, setSelectedMeal] = useState<MealKey>('breakfast')
@@ -169,6 +181,7 @@ export function PlannerView({
   const [customName, setCustomName] = useState(''),
     [customAmount, setCustomAmount] = useState<Amount>(null),
     [amounts, setAmounts] = useState<Record<string, Amount>>({})
+  const [recording, setRecording] = useState<PlanMeal | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false),
     [historyDate, setHistoryDate] = useState(''),
     [historyTotal, setHistoryTotal] = useState(0),
@@ -509,6 +522,23 @@ export function PlannerView({
   useEffect(() => {
     if (historyOpen) void loadPlans()
   }, [historyOpen, historyDate])
+  useEffect(() => {
+    const current = activePlan.current
+    if (revision && current) {
+      const controller = new AbortController()
+      api<Plan>(`/plans/${current.id}`, {}, controller.signal)
+        .then((value) => {
+          if (!controller.signal.aborted) {
+            showPlan(value)
+            setNotice('')
+          }
+        })
+        .catch((error) => {
+          if (!controller.signal.aborted) setError(message(error))
+        })
+      return () => controller.abort()
+    }
+  }, [revision])
   const run = async (task: () => Promise<void>) => {
     if (busy.current) return
     busy.current = true
@@ -567,6 +597,16 @@ export function PlannerView({
       setNotice('정한 메뉴와 준비 조건으로 하루 식단을 만들었어요.')
     })
   }
+  const reloadActual = () => {
+    const current = activePlan.current
+    if (!current) return
+    void run(async () => {
+      const value = await api<Plan>(`/plans/${current.id}`)
+      if (!mounted.current || activePlan.current?.id !== current.id) return
+      showPlan(value)
+      actual.retry()
+    })
+  }
   const edit = async (
     meal: PlanMeal,
     action: string,
@@ -617,6 +657,47 @@ export function PlannerView({
                       ? '선택한 음식 하나만 바꿨어요.'
                       : '고정 상태를 저장했어요.'
       )
+    })
+  }
+  const record = (
+    meal: PlanMeal,
+    recordedAmounts: Record<string, Amount>,
+    eatenAt: string,
+    skipped: string[]
+  ) => {
+    const current = activePlan.current
+    if (!current) return
+    const body = {
+      client_record_id: crypto.randomUUID(),
+      expected_version: current.version,
+      eaten_at: eatenAt,
+      amounts: recordedAmounts,
+      skipped_item_ids: skipped
+    }
+    void run(async () => {
+      const result = await post<{ plan: Plan }>(
+        `/plans/${current.id}/meals/${meal.key}/record`,
+        body
+      )
+      if (!mounted.current) return
+      showPlan(result.plan)
+      setRecording(null)
+      setNotice('실제 먹은 양으로 기록했어요. 식사 기록에서 수정하거나 평가할 수 있어요.')
+    })
+  }
+  const undoRecord = (meal: PlanMeal) => {
+    const first = meal.records?.[0]
+    if (!first) return
+    const requestId = crypto.randomUUID()
+    void run(async () => {
+      const entry = await api<Meal>(`/meals/${first.id}`)
+      const result = await post<{ plan: Plan }>(`/meals/${first.id}/cancel`, {
+        client_request_id: requestId,
+        expected_version: entry.version
+      })
+      if (!mounted.current) return
+      showPlan(result.plan)
+      setNotice('식사 완료를 되돌렸어요. 원기록은 취소한 기록에서 확인할 수 있어요.')
     })
   }
   const setConstraint = (key: MealKey, changes: Partial<MealConstraints>) =>
@@ -755,7 +836,7 @@ export function PlannerView({
         >
           지난 식단 찾기
         </button>
-        <span className="status-pill">내 입맛으로 정하고 · 바꾸고</span>
+        <span className="status-pill">정하고 · 바꾸고 · 기록하고</span>
       </div>
       {historyOpen && (
         <section className="plan-browser" aria-label="저장한 식단 찾기">
@@ -1308,7 +1389,7 @@ export function PlannerView({
               </div>
             </details>
             <p className="setup-settings-link">
-              {'취향은 저장한 설정을 참고해요. '}
+              {'취향은 저장한 설정과 메뉴 평가를 참고해요. '}
               <button type="button" className="inline-link" onClick={onSettings}>
                 내 설정 관리
               </button>
@@ -1345,6 +1426,8 @@ export function PlannerView({
       {plan && (
         <>
           <MealOverview
+            actualMeals={actual.meals}
+            actualLoading={actual.loading}
             meals={plan.meals}
             selected={selectedMeal}
             onSelect={selectMeal}
@@ -1379,6 +1462,10 @@ export function PlannerView({
                 <PlanMealCard
                   key={meal.key}
                   meal={meal}
+                  actual={actual.meals[meal.key]}
+                  actualLoading={actual.loading}
+                  actualError={actual.error}
+                  onActualRetry={reloadActual}
                   onOverview={backToOverview}
                   focusRequest={mealFocus?.key === meal.key ? mealFocus : undefined}
                   dayEnergy={plan.nutrients.energy_kcal}
@@ -1394,12 +1481,17 @@ export function PlannerView({
                   }
                   constraints={constraints[meal.key] ?? { ...EMPTY, ...meal.constraints }}
                   pending={pending}
+                  feedback={feedback}
                   amounts={amounts}
                   onAmount={(id, value) => setAmounts((old) => ({ ...old, [id]: value }))}
                   onConstraint={(change) => setConstraint(meal.key, change)}
                   onEdit={(action, fields) => edit(meal, action, fields)}
                   onPick={(action, itemId) => openPicker(meal.key, 'plan', action, itemId)}
+                  onRecord={() => setRecording(meal)}
+                  onJournal={onJournal}
                   onCompare={onCompare}
+                  onUndo={() => undoRecord(meal)}
+                  onFeedback={onFeedback}
                 />
               ))}
           </section>
@@ -1423,6 +1515,23 @@ export function PlannerView({
             </p>
           </details>
         </>
+      )}
+      {recording && (
+        <MealRecordDialog
+          meal={recording}
+          drafts={amounts}
+          pending={pending}
+          error={error}
+          onRetry={
+            retry.current
+              ? () => {
+                  if (retry.current) void run(retry.current)
+                }
+              : undefined
+          }
+          onClose={() => setRecording(null)}
+          onSave={(values, time, skipped) => record(recording, values, time, skipped)}
+        />
       )}
       {picker && (
         <div
